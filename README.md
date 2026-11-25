@@ -26,6 +26,17 @@ The workflow downloads the currently published `data/latest.json` first. A sourc
 
 The site is published at `https://<user>.github.io/<repo>/`.
 
+### Fetch from a machine in India
+
+Grid-India and Vidyut Pravah reset connections from GitHub's own (US-hosted) runners, so on those the site shows only the model. To get live data, run the **fetch** job on any always-on machine in India: a home PC, a Raspberry Pi, or a small VM in an Indian cloud region (Mumbai or Hyderabad). Publishing stays on GitHub.
+
+1. On that machine, open the repository's **Settings → Actions → Runners → New self-hosted runner** and follow the commands shown for its operating system. When `config.sh` asks for extra labels, enter `india`.
+2. Install it as a service so it survives reboots (`sudo ./svc.sh install && sudo ./svc.sh start` on Linux).
+3. Make sure Python 3.10 or later and `curl` are installed on it.
+4. In **Settings → Secrets and variables → Actions → Variables**, add a repository variable `FETCH_RUNNER` with the value `india`.
+
+The runner only makes outbound HTTPS requests to GitHub and the two data sites. This workflow has no `pull_request` trigger, so code from forks never runs on your machine.
+
 ## Run locally
 
 ```bash
@@ -41,7 +52,7 @@ python -m http.server            # then open http://localhost:8000
 - **Inter-regional flows are estimates.** Metered flows are published by the regional load despatch centres (RLDCs). Their live endpoints return no data outside India, so the page solves for flows from each region's demand and net position.
 - **Vidyut Pravah lists 31 states.** Odisha, Ladakh and DNH & DD are missing. Their share of their region is taken from the PSP report and the live sum is scaled up.
 - **Vidyut Pravah's TLS certificate has often been invalid.** The fetcher tries a verified request first. Only if that fails on TLS does it retry that one public, read-only host without verification, and it logs a warning when it does.
-- **The government sites reset connections from some cloud networks.** Other open-source projects fetch Grid-India's API from GitHub Actions successfully. If a source keeps failing in your runs, its error is recorded under `errors` in `latest.json` and the page keeps the last good values.
+- **The government sites reset connections from outside India**, including from GitHub's runners. Use a runner in India (above). A source that fails is recorded under `errors` in `latest.json`, shows as a warning on the run, and the page keeps the last good values.
 - **The parsers follow the current page and report layouts.** If a layout changes, the run records an error instead of writing wrong numbers.
 
 ## Credits

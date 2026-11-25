@@ -372,8 +372,11 @@ def main() -> int:
     else:
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_text(text + "\n")
-    # fail the run only if nothing at all could be fetched
-    return 1 if out["live"] is None and out["psp"] is None else 0
+    # Never fail the run: the page falls back to its model. Surface problems as
+    # GitHub Actions warnings instead.
+    for k, v in out["errors"].items():
+        print(f"::warning title={k} source failed::{v}")
+    return 0
 
 
 if __name__ == "__main__":
